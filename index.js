@@ -2,17 +2,17 @@ const puppeteer = require("puppeteer");
 const fs = require("fs");
 
 (async () => {
-  const LAST_EVENT_SELECTOR = "ul.event-wrapper:nth-child(1) ";
+  const LAST_EVENT_SELECTOR = "ul.event-wrapper ";
   const EVENT_SELECTOR = LAST_EVENT_SELECTOR;
   const DOCUMENT_SELECTOR = ".document-row";
   const documentsArray = [];
+  let oldDocumentsArray = [];
 
-  fs.rmSync("documents.json", { force: true });
-  fs.rmSync("documents.csv", { force: true });
+  if (fs.existsSync("documents.json")) {
+    oldDocumentsArray = JSON.parse(fs.readFileSync("documents.json", "utf8"));
+  }
 
-  console.log("Starting browser...");
   const browser = await puppeteer.launch({ headless: false });
-  console.log("Opening new page...");
   const page = await browser.newPage();
   await page.goto(
     "https://www.fia.com/documents/championships/fia-formula-one-world-championship-14/season/season-2022-2005",
@@ -34,9 +34,7 @@ const fs = require("fs");
     );
 
     //clean innerText
-    // const documentName = documentNameTmp.replace(/\s+/g, " ").trim();
-    const documentName = documentNameTmp.split("\t\n")[0];
-    const documentDate = documentNameTmp.split("\t\n")[1];
+    const documentName = documentNameTmp.replace(/\s+/g, " ").trim();
 
     //get document  download link
     const documentLink = await page.evaluate(
@@ -46,20 +44,23 @@ const fs = require("fs");
 
     const document = {
       name: documentName,
-      date: documentDate,
+      // date: documentDate,
       link: documentLink,
     };
 
-    //write the data to a file
-    fs.appendFileSync(
-      "documents.csv",
-      `${documentName}, ${documentDate}, ${documentLink}\n`
-    );
-
     documentsArray.push(document);
   }
-  
-  fs.appendFileSync("documents.json", JSON.stringify(documentsArray));
+
+  //compare old and new array
+  const newDocumentsArray = documentsArray.filter((document) => {
+    return !oldDocumentsArray.some((oldDocument) => {
+      return oldDocument.name === document.name;
+    });
+  });
+  console.log("Found " + newDocumentsArray.length + " new documents");
+
+  // save the new documents to a file
+  fs.writeFileSync("documents.json", JSON.stringify(documentsArray));
   console.log("Done!");
 
   // const read = fs.readFileSync("documents.json", { encoding: "utf8" });
