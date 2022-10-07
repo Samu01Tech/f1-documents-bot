@@ -11,7 +11,7 @@ let bot = new TelegramBot(token, { polling: true });
   const EVENT_SELECTOR = LAST_EVENT_SELECTOR;
   const DOCUMENT_SELECTOR = ".document-row";
 
-  const browser = await puppeteer.launch({ headless: false });
+  const browser = await puppeteer.launch({ args: ["--no-sandbox"] });
   const page = await browser.newPage();
   await page.goto(
     "https://www.fia.com/documents/championships/fia-formula-one-world-championship-14/season/season-2022-2005",
