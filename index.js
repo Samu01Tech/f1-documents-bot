@@ -66,17 +66,24 @@ let bot = new TelegramBot(token, { polling: true });
     });
     console.log("Found " + newDocumentsArray.length + " new documents");
 
+    let messageCounter = 0;
     //for each new document send a message to telegram
     newDocumentsArray.forEach((document) => {
       bot.sendMessage(
         process.env.TELEGRAM_CHAT_ID,
         document.name + " " + document.link
       );
+
+      messageCounter++;
+      //check if messageCounter is multiple of 10
+      if (messageCounter % 10 === 0) {
+        setTimeout(() => {}, 10000);
+      }
     });
 
     // save the new documents to a file
     fs.writeFileSync("documents.json", JSON.stringify(documentsArray));
-    
+
     //wait for 10 seconds
     await page.waitForTimeout(10000);
   }
