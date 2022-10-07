@@ -19,8 +19,11 @@ let bot = new TelegramBot(token, { polling: true });
       waitUntil: "networkidle2",
     }
   );
+
+  let scrapeCount = 0;
   while (true) {
-    console.log("Checking for new documents...");
+    scrapeCount++;
+    console.log("(" + scrapeCount + ") Checking for new documents...");
     const documentsArray = [];
     let oldDocumentsArray = [];
 
@@ -66,26 +69,20 @@ let bot = new TelegramBot(token, { polling: true });
     });
     console.log("Found " + newDocumentsArray.length + " new documents");
 
-    let messageCounter = 0;
     //for each new document send a message to telegram
     newDocumentsArray.forEach((document) => {
       bot.sendMessage(
         process.env.TELEGRAM_CHAT_ID,
-        document.name + " " + document.link
+        document.name + "\n" + document.link
       );
-
-      messageCounter++;
-      //check if messageCounter is multiple of 10
-      if (messageCounter % 10 === 0) {
-        setTimeout(() => {}, 10000);
-      }
+      console.log("Message " + document.name + " sent");
     });
 
     // save the new documents to a file
     fs.writeFileSync("documents.json", JSON.stringify(documentsArray));
 
     //wait for 10 seconds
-    await page.waitForTimeout(10000);
+    await new Promise((r) => setTimeout(r, 10000));
   }
 
   //wait for 0 minutes then close browser
