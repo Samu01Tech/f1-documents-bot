@@ -14,6 +14,7 @@ RUN apt-get update \
 RUN npm i -g pnpm
 
 COPY package*.json ./
+COPY pnpm-lock.yaml ./
 
 RUN pnpm i
 
